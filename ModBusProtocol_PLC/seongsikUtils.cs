@@ -70,9 +70,9 @@ namespace ModBusProtocol_PLC
            
         }
         //쓰레드로 돌아갈 함수 
-        public static void FunctionFotThread()
+        public static void FunctionFotThread(TcpClient client, NetworkStream stream)
         { 
-            
+            //연결을 한번만 하고 요청을 여러번 보내는 방식으로 해보자
         }
     }
 }

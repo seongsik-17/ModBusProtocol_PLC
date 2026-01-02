@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Security.Cryptography.Pkcs;
 using System.Text;
+using System.Text.Json;
 
 namespace ModBusProtocol_PLC
 {
@@ -12,20 +14,36 @@ namespace ModBusProtocol_PLC
         {
             return (highByte << 8) | lowByte;
         }
+
         //config 데이터 가져오기
-        private static Config getConfigData()
+        public static Config getConfigData()
         {
             Config config = new Config();
+            //Todo: config 데이터 가져오는 로직 작성 필요
+            string fileAddr = "config.json";
+            if (File.Exists(fileAddr))
+            {
+                string jsonString = File.ReadAllText(fileAddr);
+                //MessageBox.Show(jsonString);
+                config = JsonSerializer.Deserialize<Config>(jsonString);
+                //MessageBox.Show(config.Ip);
+            }
+            else
+            {
+                MessageBox.Show("config.json 파일이 존재하지 않습니다.");
+            }
+
             return config;
-		}
+        }
 
-		//AICPL8 데이터 가져오기
-		public static string getDataFromAICPL8()
+        //AICPL8 데이터 가져오기
+        public static string getDataFromAICPL8()
         {
-            string ip = "10.8.38.236";
-            int port = 13890;
+            string ip = getConfigData().Ip;
+            int port = getConfigData().Port;
+            Console.WriteLine($"Connecting to {ip}:{port}");
 
-			using (TcpClient client = new TcpClient(ip, port))
+            using (TcpClient client = new TcpClient(ip, port))
             using (NetworkStream stream = client.GetStream())
             {
                 // Modbus 요청 패킷 생성 (예: 읽기 명령)
@@ -43,5 +61,8 @@ namespace ModBusProtocol_PLC
                 return data.ToString();
             }
         }
+
+        //네트워크 확인
+        
     }
 }

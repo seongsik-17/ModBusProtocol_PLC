@@ -6,8 +6,8 @@ namespace ModBusProtocol_PLC
 {
     public class Config
     {
-        private string DbPath { get; set; }
-        private string ip { get; set; }
-		private int port { get; set; }
+        public string DbPath { get; set; }
+        public string Ip { get; set; }
+		public int Port { get; set; }
 	}
 }

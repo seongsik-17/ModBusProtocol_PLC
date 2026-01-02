@@ -8,20 +8,21 @@ namespace ModBusProtocol_PLC
         {
             InitializeComponent();
         }
+        private string ip = seongsiksUtils.getConfigData().Ip;
+        private int port = seongsiksUtils.getConfigData().Port;
 
-        private string ip = "10.8.38.236";
-        private int port = 13890;
 
-        private void button1_Click(object sender, EventArgs e)
+		private void button1_Click(object sender, EventArgs e)
         {
             try
             {
                 TcpClient client = new TcpClient(ip, port);
-                textBox1.Text = "연결성공";
+				string currentDir = System.IO.Directory.GetCurrentDirectory();
+				textBox3.Text = "연결성공"+ currentDir;
             }
             catch (Exception ex)
             {
-                textBox1.Text = "연결실패";
+                textBox3.Text = "연결실패";
                 MessageBox.Show(ex.Message);
             }
         }
@@ -29,7 +30,7 @@ namespace ModBusProtocol_PLC
         //데이터 가져오기
         private void button2_Click(object sender, EventArgs e)
         {
-            textBox2.Text = seongsiksUtils.getDataFromAICPL8();
+            textBox3.AppendText(seongsiksUtils.getDataFromAICPL8() + "\r\n");
 		}
     }
 }

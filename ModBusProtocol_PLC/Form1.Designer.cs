@@ -93,6 +93,7 @@
             Controls.Add(button1);
             Name = "Form1";
             Text = "PLC_Test";
+            Load += Form1_Load;
             ResumeLayout(false);
             PerformLayout();
         }

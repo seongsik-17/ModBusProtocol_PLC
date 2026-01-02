@@ -8,17 +8,17 @@ namespace ModBusProtocol_PLC
         {
             InitializeComponent();
         }
-        private string ip = seongsiksUtils.getConfigData().Ip;
-        private int port = seongsiksUtils.getConfigData().Port;
 
+        //private string ip = comboBox1.Text;
+        //private int port = seongsiksUtils.getConfigData().Port;
 
-		private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
             try
             {
-                TcpClient client = new TcpClient(ip, port);
-				string currentDir = System.IO.Directory.GetCurrentDirectory();
-				textBox3.Text = "연결성공"+ currentDir;
+                //TcpClient client = new TcpClient(ip, port);
+                string currentDir = System.IO.Directory.GetCurrentDirectory();
+                textBox3.Text = "연결성공" + currentDir;
             }
             catch (Exception ex)
             {
@@ -30,7 +30,28 @@ namespace ModBusProtocol_PLC
         //데이터 가져오기
         private void button2_Click(object sender, EventArgs e)
         {
-            textBox3.AppendText(seongsiksUtils.getDataFromAICPL8() + "\r\n");
-		}
+            try
+            {
+                textBox3.AppendText(seongsiksUtils.getDataFromAICPL8(comboBox1.Text) + "\r\n");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            comboBox1.Items.Clear();
+            Config config = seongsiksUtils.getConfigData();
+            foreach (string ip in config.Ip)
+            {
+                comboBox1.Items.Add(ip);
+            }
+            if (comboBox1.Items.Count > 0)
+            {
+                comboBox1.SelectedIndex = 0;
+            }
+        }
     }
 }

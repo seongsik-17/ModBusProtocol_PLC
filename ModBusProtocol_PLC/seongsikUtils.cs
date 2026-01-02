@@ -37,32 +37,42 @@ namespace ModBusProtocol_PLC
         }
 
         //AICPL8 데이터 가져오기
-        public static string getDataFromAICPL8()
+        public static string getDataFromAICPL8(string ip)
         {
-            string ip = getConfigData().Ip;
             int port = getConfigData().Port;
-            Console.WriteLine($"Connecting to {ip}:{port}");
 
-            using (TcpClient client = new TcpClient(ip, port))
-            using (NetworkStream stream = client.GetStream())
+            try
             {
-                // Modbus 요청 패킷 생성 (예: 읽기 명령)
-                byte[] request = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x03, 0x00, 0x64, 0x00, 0x01 };
-                stream.Write(request, 0, request.Length);
-                // 응답 받기
-                byte[] response = new byte[256];
-                int bytesRead = stream.Read(response, 0, response.Length);
-                // 응답 처리 (예: 데이터 출력)
-                int data = combineBytesToInt(response[9], response[10]);
-                //textBox3.Text = data.ToString();
-                client.Close();
-                stream.Close();
+				using (TcpClient client = new TcpClient(ip, port))
+				using (NetworkStream stream = client.GetStream())
+				{
+					//클라이언트 응답 대기 시간 설정
+					client.ReceiveTimeout = 2000; // 2초
+					// Modbus 요청 패킷 생성 (예: 읽기 명령)
+					byte[] request = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x03, 0x00, 0x64, 0x00, 0x01 };
+					stream.Write(request, 0, request.Length);
+					// 응답 받기
+					byte[] response = new byte[256];
+					int bytesRead = stream.Read(response, 0, response.Length);
+					// 응답 처리 (예: 데이터 출력)
+					int data = combineBytesToInt(response[9], response[10]);
+					//textBox3.Text = data.ToString();
+					client.Close();
+					stream.Close();
 
-                return data.ToString();
-            }
+					return data.ToString();
+				}
+			}
+            catch
+            {
+                throw new Exception("장비 연결 실패!");
+			}
+           
         }
-
-        //네트워크 확인
-        
+        //쓰레드로 돌아갈 함수 
+        public static void FunctionFotThread()
+        { 
+            
+        }
     }
 }

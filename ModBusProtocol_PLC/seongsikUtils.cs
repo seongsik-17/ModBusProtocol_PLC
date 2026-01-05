@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography.Pkcs;
 using System.Text;
 using System.Text.Json;
+using System.Windows.Forms;
 
 namespace ModBusProtocol_PLC
 {
@@ -43,36 +44,80 @@ namespace ModBusProtocol_PLC
 
             try
             {
-				using (TcpClient client = new TcpClient(ip, port))
-				using (NetworkStream stream = client.GetStream())
-				{
-					//클라이언트 응답 대기 시간 설정
-					client.ReceiveTimeout = 2000; // 2초
-					// Modbus 요청 패킷 생성 (예: 읽기 명령)
-					byte[] request = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x03, 0x00, 0x64, 0x00, 0x01 };
-					stream.Write(request, 0, request.Length);
-					// 응답 받기
-					byte[] response = new byte[256];
-					int bytesRead = stream.Read(response, 0, response.Length);
-					// 응답 처리 (예: 데이터 출력)
-					int data = combineBytesToInt(response[9], response[10]);
-					//textBox3.Text = data.ToString();
-					client.Close();
-					stream.Close();
+                using (TcpClient client = new TcpClient(ip, port))
+                using (NetworkStream stream = client.GetStream())
+                {
+                    //클라이언트 응답 대기 시간 설정
+                    client.ReceiveTimeout = 2000;
+                    // Modbus 요청 패킷 생성 (예: 읽기 명령)
+                    byte[] request = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x03, 0x00, 0x64, 0x00, 0x01 };
+                    stream.Write(request, 0, request.Length);
+                    // 응답 받기
+                    byte[] response = new byte[256];
+                    int bytesRead = stream.Read(response, 0, response.Length);
+                    // 응답 처리 (예: 데이터 출력)
+                    int data = combineBytesToInt(response[9], response[10]);
+                    //textBox3.Text = data.ToString();
+                    client.Close();
+                    stream.Close();
 
-					return data.ToString();
-				}
-			}
+                    return data.ToString();
+                }
+            }
             catch
             {
                 throw new Exception("장비 연결 실패!");
-			}
-           
+            }
         }
-        //쓰레드로 돌아갈 함수 
-        public static void FunctionFotThread(TcpClient client, NetworkStream stream)
-        { 
-            //연결을 한번만 하고 요청을 여러번 보내는 방식으로 해보자
+
+        //쓰레드로 돌아갈 함수
+        public static string FunctionFotThread(TcpClient client, NetworkStream stream)
+        {
+
+            if (client == null || stream == null)
+            {
+                throw new Exception("장비 연결 실패!");
+            }
+            // Modbus 요청 패킷 생성 (예: 읽기 명령)
+            byte[] request = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x03, 0x00, 0x64, 0x00, 0x01 };
+            stream.Write(request, 0, request.Length);
+            // 응답 받기
+            byte[] response = new byte[256];
+            int bytesRead = stream.Read(response, 0, response.Length);
+            // 응답 처리 (예: 데이터 출력)
+            int data = combineBytesToInt(response[9], response[10]);
+            //textBox3.Text = data.ToString();
+
+            string returnData = "누적 생산량: " + data.ToString();
+
+            return returnData;
         }
-    }
+
+		//새 탭 만들어주는 함수
+		//TapControl 제어
+		private static Dictionary<string, TextBox> _tabPages = new Dictionary<string, TextBox>();
+		public static TextBox createNewTab(string ip, TabControl tc1)
+        {
+            if(_tabPages.ContainsKey(ip))
+            {
+                return _tabPages[ip];
+            }
+            TabPage newTab = new TabPage(ip);
+
+            TextBox textBox = new TextBox();
+
+            textBox.Multiline = true;
+            textBox.ScrollBars = ScrollBars.Vertical;
+            textBox.Dock = DockStyle.Fill;
+            textBox.ReadOnly = true;
+            textBox.BackColor = Color.Black;
+            textBox.ForeColor = Color.Lime;
+			newTab.Controls.Add(textBox);
+
+			tc1.TabPages.Add(newTab);
+            _tabPages.Add(ip, textBox);
+
+            return textBox;
+		}
+	}
 }

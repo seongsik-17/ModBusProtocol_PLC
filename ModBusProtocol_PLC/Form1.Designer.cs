@@ -33,11 +33,15 @@
             textBox3 = new TextBox();
             comboBox1 = new ComboBox();
             label1 = new Label();
+            button3 = new Button();
+            button4 = new Button();
+            button5 = new Button();
+            tabControl1 = new TabControl();
             SuspendLayout();
             // 
             // button1
             // 
-            button1.Location = new Point(577, 12);
+            button1.Location = new Point(577, 63);
             button1.Name = "button1";
             button1.Size = new Size(211, 44);
             button1.TabIndex = 0;
@@ -47,7 +51,7 @@
             // 
             // button2
             // 
-            button2.Location = new Point(577, 62);
+            button2.Location = new Point(577, 113);
             button2.Name = "button2";
             button2.Size = new Size(211, 44);
             button2.TabIndex = 0;
@@ -61,7 +65,7 @@
             textBox3.Multiline = true;
             textBox3.Name = "textBox3";
             textBox3.ScrollBars = ScrollBars.Vertical;
-            textBox3.Size = new Size(537, 376);
+            textBox3.Size = new Size(537, 95);
             textBox3.TabIndex = 4;
             // 
             // comboBox1
@@ -81,11 +85,53 @@
             label1.TabIndex = 6;
             label1.Text = "Ip 리스트";
             // 
+            // button3
+            // 
+            button3.Location = new Point(577, 163);
+            button3.Name = "button3";
+            button3.Size = new Size(211, 44);
+            button3.TabIndex = 7;
+            button3.Text = "START";
+            button3.UseVisualStyleBackColor = true;
+            button3.Click += button3_Click;
+            // 
+            // button4
+            // 
+            button4.Location = new Point(577, 213);
+            button4.Name = "button4";
+            button4.Size = new Size(211, 44);
+            button4.TabIndex = 7;
+            button4.Text = "STOP";
+            button4.UseVisualStyleBackColor = true;
+            button4.Click += button4_Click;
+            // 
+            // button5
+            // 
+            button5.Location = new Point(577, 263);
+            button5.Name = "button5";
+            button5.Size = new Size(211, 44);
+            button5.TabIndex = 7;
+            button5.Text = "CLEAR";
+            button5.UseVisualStyleBackColor = true;
+            button5.Click += button5_Click;
+            // 
+            // tabControl1
+            // 
+            tabControl1.Location = new Point(13, 161);
+            tabControl1.Name = "tabControl1";
+            tabControl1.SelectedIndex = 0;
+            tabControl1.Size = new Size(536, 277);
+            tabControl1.TabIndex = 8;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(tabControl1);
+            Controls.Add(button5);
+            Controls.Add(button4);
+            Controls.Add(button3);
             Controls.Add(label1);
             Controls.Add(comboBox1);
             Controls.Add(textBox3);
@@ -105,5 +151,9 @@
         private TextBox textBox3;
         private ComboBox comboBox1;
         private Label label1;
+        private Button button3;
+        private Button button4;
+        private Button button5;
+        private TabControl tabControl1;
     }
 }

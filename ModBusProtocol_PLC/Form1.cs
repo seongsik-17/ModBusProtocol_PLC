@@ -102,12 +102,8 @@ namespace ModBusProtocol_PLC
 
                 while (!_cts.IsCancellationRequested)
                 {
-                    client = new TcpClient();
-                    var connectTask = client.ConnectAsync(ip, port);
-					if (await Task.WhenAny(connectTask, Task.Delay(3000)) != connectTask)
-                    {
-                        throw new Exception("연결 시간 초과");
-					}
+                    client = new TcpClient(ip, port);
+                   
                     stream = client.GetStream();
                     string updateString = null;
 
@@ -141,17 +137,7 @@ namespace ModBusProtocol_PLC
                             //_cts가 취소된 경우 루프 종료
                             return;
                         }
-
-                        //오류 횟수를 카운트 하고 10초 간격으로 5회 이상 재 시도에도 연결 실패시 fail로 간주
-                        if (cntError > 2)
-                        {
-                            //오류가 3회 이상 발생한 케이스
-                            MessageBox.Show(ex.Message);
-                            return;
-                        }
-                        cntError++;
-                        await Task.Delay(1000);
-                        continue;
+                        
                     }
                     finally
                     {

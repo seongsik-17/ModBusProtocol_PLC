@@ -30,43 +30,33 @@
         {
             button1 = new Button();
             button2 = new Button();
-            textBox3 = new TextBox();
             comboBox1 = new ComboBox();
             label1 = new Label();
             button3 = new Button();
             button4 = new Button();
             button5 = new Button();
-            tabControl1 = new TabControl();
+            flowLayoutPanel1 = new FlowLayoutPanel();
             SuspendLayout();
             // 
             // button1
             // 
-            button1.Location = new Point(577, 63);
+            button1.Location = new Point(349, 12);
             button1.Name = "button1";
             button1.Size = new Size(211, 44);
             button1.TabIndex = 0;
-            button1.Text = "TCP연결";
+            button1.Text = "viewSample";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
             // button2
             // 
-            button2.Location = new Point(577, 113);
+            button2.Location = new Point(566, 12);
             button2.Name = "button2";
             button2.Size = new Size(211, 44);
             button2.TabIndex = 0;
             button2.Text = "데이터 받아오기";
             button2.UseVisualStyleBackColor = true;
             button2.Click += button2_Click;
-            // 
-            // textBox3
-            // 
-            textBox3.Location = new Point(12, 62);
-            textBox3.Multiline = true;
-            textBox3.Name = "textBox3";
-            textBox3.ScrollBars = ScrollBars.Vertical;
-            textBox3.Size = new Size(537, 95);
-            textBox3.TabIndex = 4;
             // 
             // comboBox1
             // 
@@ -87,7 +77,7 @@
             // 
             // button3
             // 
-            button3.Location = new Point(577, 163);
+            button3.Location = new Point(783, 12);
             button3.Name = "button3";
             button3.Size = new Size(211, 44);
             button3.TabIndex = 7;
@@ -97,7 +87,7 @@
             // 
             // button4
             // 
-            button4.Location = new Point(577, 213);
+            button4.Location = new Point(1000, 12);
             button4.Name = "button4";
             button4.Size = new Size(211, 44);
             button4.TabIndex = 7;
@@ -107,7 +97,7 @@
             // 
             // button5
             // 
-            button5.Location = new Point(577, 263);
+            button5.Location = new Point(1217, 12);
             button5.Name = "button5";
             button5.Size = new Size(211, 44);
             button5.TabIndex = 7;
@@ -115,26 +105,25 @@
             button5.UseVisualStyleBackColor = true;
             button5.Click += button5_Click;
             // 
-            // tabControl1
+            // flowLayoutPanel1
             // 
-            tabControl1.Location = new Point(13, 161);
-            tabControl1.Name = "tabControl1";
-            tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(536, 277);
-            tabControl1.TabIndex = 8;
+            flowLayoutPanel1.AutoScroll = true;
+            flowLayoutPanel1.Location = new Point(14, 73);
+            flowLayoutPanel1.Name = "flowLayoutPanel1";
+            flowLayoutPanel1.Size = new Size(1410, 645);
+            flowLayoutPanel1.TabIndex = 8;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
-            Controls.Add(tabControl1);
+            ClientSize = new Size(1436, 730);
+            Controls.Add(flowLayoutPanel1);
             Controls.Add(button5);
             Controls.Add(button4);
             Controls.Add(button3);
             Controls.Add(label1);
             Controls.Add(comboBox1);
-            Controls.Add(textBox3);
             Controls.Add(button2);
             Controls.Add(button1);
             Name = "Form1";
@@ -148,12 +137,11 @@
 
         private Button button1;
         private Button button2;
-        private TextBox textBox3;
         private ComboBox comboBox1;
         private Label label1;
         private Button button3;
         private Button button4;
         private Button button5;
-        private TabControl tabControl1;
+        private FlowLayoutPanel flowLayoutPanel1;
     }
 }

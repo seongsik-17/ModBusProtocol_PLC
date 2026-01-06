@@ -11,30 +11,26 @@ namespace ModBusProtocol_PLC
             InitializeComponent();
         }
 
-        //private string ip = comboBox1.Text;
-        //private int port = seongsiksUtils.getConfigData().Port;
+        //CancellationTokenSource
+        private CancellationTokenSource _cts = new CancellationTokenSource();
 
-        //Task 제어
-        private Dictionary<string, CancellationTokenSource> _runningTasks = new Dictionary<string, CancellationTokenSource>();
+        //AutoBaseMonitorView 리스트 전역 선언
+        private AutoBaseMonitorView[] _AbmvList = seongsiksUtils.createAllAutoBaseMonitorViews();
 
-        //private CancellationTokenSource _cts = new CancellationTokenSource();
+        //ip별 클라이언트 딕셔너리 만들기
+        private Dictionary<string, TcpClient> _clientMap = new Dictionary<string, TcpClient>();
 
-        //모니터링 중인 IP 리스트
-        private List<string> monitoringIPs = new List<string>();
+		//config 파일 데이터 전역 선언
+		private Config config = seongsiksUtils.getConfigData();
 
         private void button1_Click(object sender, EventArgs e)
         {
-            try
-            {
-                //TcpClient client = new TcpClient(ip, port);
-                //string currentDir = System.IO.Directory.GetCurrentDirectory();
-                //textBox3.Text = "연결성공" + currentDir;
-            }
-            catch (Exception ex)
-            {
-                textBox3.Text = "연결실패";
-                MessageBox.Show(ex.Message);
-            }
+            //view 만들기 테스트
+            AutoBaseMonitorView view = new AutoBaseMonitorView();
+            int width = (flowLayoutPanel1.ClientSize.Width - 40) / 3;
+            view.Size = new Size(441, 299);
+            //view.SetInformation(config.Ip[0], 104, true);
+            flowLayoutPanel1.Controls.Add(view);
         }
 
         //데이터 가져오기
@@ -42,7 +38,7 @@ namespace ModBusProtocol_PLC
         {
             try
             {
-                textBox3.AppendText(seongsiksUtils.getDataFromAICPL8(comboBox1.Text) + "\r\n");
+                //textBox3.AppendText(seongsiksUtils.getDataFromAICPL8(comboBox1.Text) + "\r\n");
             }
             catch (Exception ex)
             {
@@ -53,7 +49,7 @@ namespace ModBusProtocol_PLC
         private void Form1_Load(object sender, EventArgs e)
         {
             comboBox1.Items.Clear();
-            Config config = seongsiksUtils.getConfigData();
+
             foreach (string ip in config.Ip)
             {
                 comboBox1.Items.Add(ip);
@@ -65,111 +61,40 @@ namespace ModBusProtocol_PLC
         }
 
         //START 버튼
+
         private void button3_Click(object sender, EventArgs e)
         {
-            string ip = comboBox1.Text;
-            int port = seongsiksUtils.getConfigData().Port;
-            if (monitoringIPs.Contains(ip))
+            TcpClient client = null;
+			//Todo: 이 부분도 분리 가능한지 구상 필요
+			for (int i = 0; i < _AbmvList.Length; i++)
             {
-                MessageBox.Show("이미 모니터링 중인 IP입니다.");
-                return;
+                AutoBaseMonitorView view = _AbmvList[i];
+                int width = (flowLayoutPanel1.ClientSize.Width - 40) / 3;
+                view.Size = new Size(width, 299);
+                client.Connect(config.Ip[i], config.Port);
+				_clientMap.Add(config.Ip[i], client);
+
+				flowLayoutPanel1.Controls.Add(view);
             }
-            //모니터링 중인 IP 리스트에 추가
-            if (!monitoringIPs.Contains(ip))
+            
+            
+            //데이터를 업데이트 하는 함수 반복 실행 기능 추가 필요
+            while (!_cts.IsCancellationRequested)
             {
-                monitoringIPs.Add(ip);
-            }
-            if (_runningTasks.ContainsKey(ip))
-            {
-                MessageBox.Show("이미 모니터링 중인 IP입니다.");
-                return;
-            }
-            //cts 생성
-            CancellationTokenSource _cts = new CancellationTokenSource();
-            //모니터링 중인 IP 리스트에 추가(cts 관리용)
-            _runningTasks.Add(ip, _cts);
-
-            //모니터링 주기 설정 (ms)
-            int setTime = 2000;
-            //새탭 생성
-            TextBox logMessage = seongsiksUtils.createNewTab(ip, tabControl1);
-
-            Task.Run(async () =>
-            {
-                TcpClient client = null;
-                NetworkStream stream = null;
-                int cntError = 0;
-
-                while (!_cts.IsCancellationRequested)
-                {
-                    client = new TcpClient(ip, port);
-                   
-                    stream = client.GetStream();
-                    string updateString = null;
-
-                    try
-                    {
-                        updateString = seongsiksUtils.FunctionFotThread(client, stream);
-                        //오류 카운터 갱신
-                        cntError = 0;
-
-                        //탭 데이터 갱신
-                        logMessage.Invoke(new Action(() =>
-                        {
-                            string curTime = DateTime.Now.ToString("HH:mm:ss");
-                            logMessage.AppendText($"[{curTime}] {ip} " + updateString + "\r\n");
-                        }));
-
-                        //텍스트박스 갱신
-                        //textBox3.Invoke(new Action(() =>
-                        //{
-                        //    string curTime = DateTime.Now.ToString("HH:mm:ss");
-                        //    textBox3.AppendText($"[{curTime}] {ip} " + updateString + "\r\n");
-                        //}));
-
-                        await Task.Delay(setTime, _cts.Token);
-                    }
-                    catch (Exception ex)
-                    {
-                        //Todo: TCP연결이 실패했을 경우 발생하는 이벤트 작성 필요(로그 생성 및 DB 삽입)
-                        if (_cts == null || _cts.IsCancellationRequested)
-                        {
-                            //_cts가 취소된 경우 루프 종료
-                            return;
-                        }
-                        
-                    }
-                    finally
-                    {
-                        stream?.Close();
-                        client?.Close();
-                    }
-                }
-            });
+				//seongsiksUtils.updateAutoBaseMonitorView();
+			}
         }
 
         //STOP 버튼
         private void button4_Click(object sender, EventArgs e)
         {
-            monitoringIPs.Remove(comboBox1.Text);
-            if (_runningTasks.ContainsKey(comboBox1.Text))
-            {
-                //취소 신호 보내기
-                _runningTasks[comboBox1.Text].Cancel();
-                _runningTasks.Remove(comboBox1.Text);
-            }
-            else
-            {
-                MessageBox.Show("모니터링 중인 IP가 아닙니다.");
-            }
-        }
+			//정지 기능 구현 필요
+		}
 
-        //CLEAR 버튼
-        private void button5_Click(object sender, EventArgs e)
+		//CLEAR 버튼
+		private void button5_Click(object sender, EventArgs e)
         {
-            textBox3.Clear();
-            TextBox currentTabTextBox = tabControl1.SelectedTab.Controls[0] as TextBox;
-            currentTabTextBox.Clear();
+            //모든 view에서 Clear()
         }
     }
 }

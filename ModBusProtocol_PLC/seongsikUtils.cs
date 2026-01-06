@@ -10,8 +10,11 @@ namespace ModBusProtocol_PLC
 {
     public static class seongsiksUtils
     {
-        //바이트 합치기
-        public static int combineBytesToInt(byte highByte, byte lowByte)
+		//view 맵
+		private static Dictionary<string, AutoBaseMonitorView> _viewMap = new Dictionary<string, AutoBaseMonitorView>();
+
+		//바이트 합치기
+		public static int combineBytesToInt(byte highByte, byte lowByte)
         {
             return (highByte << 8) | lowByte;
         }
@@ -71,10 +74,9 @@ namespace ModBusProtocol_PLC
         }
 
         //쓰레드로 돌아갈 함수
-        public static string FunctionFotThread(TcpClient client, NetworkStream stream)
+        public static string FunctionForThread(NetworkStream stream)
         {
-
-            if (client == null || stream == null)
+            if (stream == null)
             {
                 throw new Exception("장비 연결 실패!");
             }
@@ -93,12 +95,13 @@ namespace ModBusProtocol_PLC
             return returnData;
         }
 
-		//새 탭 만들어주는 함수
-		//TapControl 제어
-		private static Dictionary<string, TextBox> _tabPages = new Dictionary<string, TextBox>();
-		public static TextBox createNewTab(string ip, TabControl tc1)
+        //새 탭 만들어주는 함수
+        //TapControl 제어
+        private static Dictionary<string, TextBox> _tabPages = new Dictionary<string, TextBox>();
+
+        public static TextBox createNewTab(string ip, TabControl tc1)
         {
-            if(_tabPages.ContainsKey(ip))
+            if (_tabPages.ContainsKey(ip))
             {
                 return _tabPages[ip];
             }
@@ -112,12 +115,70 @@ namespace ModBusProtocol_PLC
             textBox.ReadOnly = true;
             textBox.BackColor = Color.Black;
             textBox.ForeColor = Color.Lime;
-			newTab.Controls.Add(textBox);
+            newTab.Controls.Add(textBox);
 
-			tc1.TabPages.Add(newTab);
+            tc1.TabPages.Add(newTab);
             _tabPages.Add(ip, textBox);
 
             return textBox;
+        }
+
+		//처음 로딩 시 Config 파일에 있는 모든 항목 View 생성하기
+		public static AutoBaseMonitorView[] createAllAutoBaseMonitorViews()
+        {
+
+            //config 데이터에서 ip 리스트 가져오기
+            List<string> ipList = new List<string>();
+            foreach (string ip in getConfigData().Ip)
+            {
+                ipList.Add(ip);
+            }
+            AutoBaseMonitorView[] monitorViews = new AutoBaseMonitorView[ipList.Count];
+            //Views 생성
+            for (int i = 0; i < ipList.Count; i++)
+            {
+                AutoBaseMonitorView view = new AutoBaseMonitorView();
+                view.Size = new Size(441, 299);
+                view.SetInformation(ipList[i]);
+                _viewMap.Add(ipList[i], view);
+				monitorViews[i] = view;
+            }
+            return monitorViews;
+        }
+
+        //생성된 뷰를 업데이트 해주는 함수
+        public static void updateAutoBaseMonitorView(NetworkStream stream)
+        {
+           
+            Task.Run(() =>
+            {
+                foreach (var kvp in _viewMap)
+                {
+                    string ip = kvp.Key;
+                    AutoBaseMonitorView view = kvp.Value;
+                    bool status = false;
+                    int totalCnt = 0;
+                    try
+                    {
+                        string data = FunctionForThread(stream);
+                        totalCnt = int.Parse(data);
+                        status = true;
+                    }
+                    catch
+                    {
+                        status = false;
+                    }
+                    //UI 스레드에서 업데이트
+                    view.Invoke(new Action(() =>
+                    {
+                        view.SetInformation(totalCnt, status);
+                    }));
+				}
+                Thread.Sleep(2000);
+			});
 		}
+
+        //데이터 변화량을 감지하는 함수
+
 	}
 }

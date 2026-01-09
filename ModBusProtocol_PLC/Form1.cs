@@ -17,11 +17,11 @@ namespace ModBusProtocol_PLC
         //AutoBaseMonitorView 리스트 전역 선언
         private AutoBaseMonitorView[] _AbmvList = seongsiksUtils.createAllAutoBaseMonitorViews();
 
-        //ip별 클라이언트 딕셔너리 만들기
-        private Dictionary<string, TcpClient> _clientMap = new Dictionary<string, TcpClient>();
+        //ip랑 view랑 매핑
+        private Dictionary<string, AutoBaseMonitorView> _viewMap = new Dictionary<string, AutoBaseMonitorView>();
 
-		//config 파일 데이터 전역 선언
-		private Config config = seongsiksUtils.getConfigData();
+        //config 파일 데이터 전역 선언
+        private Config config = seongsiksUtils.getConfigData();
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -39,6 +39,8 @@ namespace ModBusProtocol_PLC
             try
             {
                 //textBox3.AppendText(seongsiksUtils.getDataFromAICPL8(comboBox1.Text) + "\r\n");
+                string msg = seongsiksUtils.FunctionForThread("10.8.38.236");
+                MessageBox.Show(msg);
             }
             catch (Exception ex)
             {
@@ -65,34 +67,26 @@ namespace ModBusProtocol_PLC
         private void button3_Click(object sender, EventArgs e)
         {
             TcpClient client = null;
-			//Todo: 이 부분도 분리 가능한지 구상 필요
-			for (int i = 0; i < _AbmvList.Length; i++)
+            //Todo: 이 부분도 분리 가능한지 구상 필요
+            for (int i = 0; i < _AbmvList.Length; i++)
             {
                 AutoBaseMonitorView view = _AbmvList[i];
                 int width = (flowLayoutPanel1.ClientSize.Width - 40) / 3;
                 view.Size = new Size(width, 299);
-                client.Connect(config.Ip[i], config.Port);
-				_clientMap.Add(config.Ip[i], client);
-
-				flowLayoutPanel1.Controls.Add(view);
+                _viewMap.Add(config.Ip[i], view);
+                flowLayoutPanel1.Controls.Add(view);
             }
-            
-            
-            //데이터를 업데이트 하는 함수 반복 실행 기능 추가 필요
-            while (!_cts.IsCancellationRequested)
-            {
-				//seongsiksUtils.updateAutoBaseMonitorView();
-			}
         }
 
         //STOP 버튼
         private void button4_Click(object sender, EventArgs e)
         {
-			//정지 기능 구현 필요
-		}
+            //정지 기능 구현 필요
+            _cts.Cancel();
+        }
 
-		//CLEAR 버튼
-		private void button5_Click(object sender, EventArgs e)
+        //CLEAR 버튼
+        private void button5_Click(object sender, EventArgs e)
         {
             //모든 view에서 Clear()
         }

@@ -10,11 +10,14 @@ namespace ModBusProtocol_PLC
 {
     public static class seongsiksUtils
     {
+		//이벤트 핸들러
+		public static event EventHandler<(string ip, int count, bool runstop)> DataReceived;
+
 		//view 맵
 		private static Dictionary<string, AutoBaseMonitorView> _viewMap = new Dictionary<string, AutoBaseMonitorView>();
 
-		//바이트 합치기
-		public static int combineBytesToInt(byte highByte, byte lowByte)
+        //바이트 합치기
+        public static int combineBytesToInt(byte highByte, byte lowByte)
         {
             return (highByte << 8) | lowByte;
         }
@@ -74,14 +77,21 @@ namespace ModBusProtocol_PLC
         }
 
         //쓰레드로 돌아갈 함수
-        public static string FunctionForThread(NetworkStream stream)
+        public static string FunctionForThread(string ip)
         {
-            if (stream == null)
+            TcpClient client = new TcpClient();
+            NetworkStream stream = null;
+            try
+            {
+                client.Connect(ip, getConfigData().Port);
+                stream = client.GetStream();
+            }
+            catch
             {
                 throw new Exception("장비 연결 실패!");
-            }
-            // Modbus 요청 패킷 생성 (예: 읽기 명령)
-            byte[] request = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x03, 0x00, 0x64, 0x00, 0x01 };
+			}
+			// Modbus 요청 패킷 생성 (예: 읽기 명령)
+			byte[] request = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x03, 0x00, 0x64, 0x00, 0x01 };
             stream.Write(request, 0, request.Length);
             // 응답 받기
             byte[] response = new byte[256];
@@ -90,7 +100,7 @@ namespace ModBusProtocol_PLC
             int data = combineBytesToInt(response[9], response[10]);
             //textBox3.Text = data.ToString();
 
-            string returnData = "누적 생산량: " + data.ToString();
+            string returnData = data.ToString();
 
             return returnData;
         }
@@ -123,10 +133,9 @@ namespace ModBusProtocol_PLC
             return textBox;
         }
 
-		//처음 로딩 시 Config 파일에 있는 모든 항목 View 생성하기
-		public static AutoBaseMonitorView[] createAllAutoBaseMonitorViews()
+        //처음 로딩 시 Config 파일에 있는 모든 항목 View 생성하기
+        public static AutoBaseMonitorView[] createAllAutoBaseMonitorViews()
         {
-
             //config 데이터에서 ip 리스트 가져오기
             List<string> ipList = new List<string>();
             foreach (string ip in getConfigData().Ip)
@@ -141,15 +150,14 @@ namespace ModBusProtocol_PLC
                 view.Size = new Size(441, 299);
                 view.SetInformation(ipList[i]);
                 _viewMap.Add(ipList[i], view);
-				monitorViews[i] = view;
+                monitorViews[i] = view;
             }
             return monitorViews;
         }
 
         //생성된 뷰를 업데이트 해주는 함수
-        public static void updateAutoBaseMonitorView(NetworkStream stream)
+        public static void UpdatetoBaseMonitorView(NetworkStream stream)
         {
-           
             Task.Run(() =>
             {
                 foreach (var kvp in _viewMap)
@@ -160,7 +168,7 @@ namespace ModBusProtocol_PLC
                     int totalCnt = 0;
                     try
                     {
-                        string data = FunctionForThread(stream);
+                        string data = FunctionForThread("10.8.38.236");
                         totalCnt = int.Parse(data);
                         status = true;
                     }
@@ -173,12 +181,59 @@ namespace ModBusProtocol_PLC
                     {
                         view.SetInformation(totalCnt, status);
                     }));
-				}
+                }
                 Thread.Sleep(2000);
-			});
-		}
+            });
+        }
 
-        //데이터 변화량을 감지하는 함수
+        //특정 IP에서 발생하는 데이터 변화량을 감지하는 함수
+        public static bool detectDataCahnge(string ip, AutoBaseMonitorView view)
+        {
+            TcpClient client = new TcpClient();
+            NetworkStream stream = null;
+            try
+            {
+                client.Connect(ip, getConfigData().Port);
+                stream = client.GetStream();
+            }
+            catch
+            {
+                throw new Exception("장비 연결 실패!");
+                return false;
+            }
+
+            string currentData = FunctionForThread(ip);
+            Thread.Sleep(2000);
+            string newData = FunctionForThread(ip);
+            if (currentData == newData)
+            {
+                return false;
+            }
+            //기존 값을 변경된 값으로 바꾸기
+            return true;
+        }
+        #region MyRegion
+
+        #endregion
+        //값 변경이 감지된 경우 변경된 값을 업데이트 해주기
+        public static void UpdateChangedValue(string ip, AutoBaseMonitorView view)
+        {
+            TcpClient client = new TcpClient();
+            NetworkStream stream = null;
+            try
+            {
+                client.Connect(ip, getConfigData().Port);
+                stream = client.GetStream();
+            }
+            catch
+            {
+                throw new Exception("장비 연결 실패!");
+            }
+            string data = FunctionForThread(ip);
+            int totalCnt = int.Parse(data);
+            //UI 스레드에서 업데이트
+           
+		}
 
 	}
 }

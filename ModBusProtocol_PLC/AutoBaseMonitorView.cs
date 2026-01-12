@@ -10,15 +10,18 @@ namespace ModBusProtocol_PLC
 {
     public partial class AutoBaseMonitorView : UserControl
     {
-        public AutoBaseMonitorView()
+        string ip;
+      
+		public AutoBaseMonitorView(string ip)
         {
             InitializeComponent();
-        }
+            this.ip = ip;
+		}
 
         public void SetInformation(int totalCnt, bool status)
         {
-            
-            label5.Text = totalCnt.ToString();
+            SetInformation();
+			label5.Text = totalCnt.ToString();
             label6.Text = status ? "연결됨" : "연결안됨";
             if (status)
             {
@@ -29,7 +32,7 @@ namespace ModBusProtocol_PLC
                 label6.ForeColor = Color.Red;
             }
         }
-        public void SetInformation(string ip)
+        public void SetInformation()
         {
             label4.Text = ip;
 		}

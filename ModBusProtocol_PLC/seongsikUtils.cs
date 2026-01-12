@@ -10,12 +10,6 @@ namespace ModBusProtocol_PLC
 {
     public static class seongsiksUtils
     {
-		//이벤트 핸들러
-		public static event EventHandler<(string ip, int count, bool runstop)> DataReceived;
-
-		//view 맵
-		private static Dictionary<string, AutoBaseMonitorView> _viewMap = new Dictionary<string, AutoBaseMonitorView>();
-
         //바이트 합치기
         public static int combineBytesToInt(byte highByte, byte lowByte)
         {
@@ -33,7 +27,6 @@ namespace ModBusProtocol_PLC
                 string jsonString = File.ReadAllText(fileAddr);
                 //MessageBox.Show(jsonString);
                 config = JsonSerializer.Deserialize<Config>(jsonString);
-                //MessageBox.Show(config.Ip);
             }
             else
             {
@@ -89,9 +82,9 @@ namespace ModBusProtocol_PLC
             catch
             {
                 throw new Exception("장비 연결 실패!");
-			}
-			// Modbus 요청 패킷 생성 (예: 읽기 명령)
-			byte[] request = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x03, 0x00, 0x64, 0x00, 0x01 };
+            }
+            // Modbus 요청 패킷 생성 (예: 읽기 명령)
+            byte[] request = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x03, 0x00, 0x64, 0x00, 0x01 };
             stream.Write(request, 0, request.Length);
             // 응답 받기
             byte[] response = new byte[256];
@@ -105,116 +98,18 @@ namespace ModBusProtocol_PLC
             return returnData;
         }
 
-        //새 탭 만들어주는 함수
-        //TapControl 제어
-        private static Dictionary<string, TextBox> _tabPages = new Dictionary<string, TextBox>();
-
-        public static TextBox createNewTab(string ip, TabControl tc1)
-        {
-            if (_tabPages.ContainsKey(ip))
-            {
-                return _tabPages[ip];
-            }
-            TabPage newTab = new TabPage(ip);
-
-            TextBox textBox = new TextBox();
-
-            textBox.Multiline = true;
-            textBox.ScrollBars = ScrollBars.Vertical;
-            textBox.Dock = DockStyle.Fill;
-            textBox.ReadOnly = true;
-            textBox.BackColor = Color.Black;
-            textBox.ForeColor = Color.Lime;
-            newTab.Controls.Add(textBox);
-
-            tc1.TabPages.Add(newTab);
-            _tabPages.Add(ip, textBox);
-
-            return textBox;
-        }
-
-        //처음 로딩 시 Config 파일에 있는 모든 항목 View 생성하기
-        public static AutoBaseMonitorView[] createAllAutoBaseMonitorViews()
-        {
-            //config 데이터에서 ip 리스트 가져오기
-            List<string> ipList = new List<string>();
-            foreach (string ip in getConfigData().Ip)
-            {
-                ipList.Add(ip);
-            }
-            AutoBaseMonitorView[] monitorViews = new AutoBaseMonitorView[ipList.Count];
-            //Views 생성
-            for (int i = 0; i < ipList.Count; i++)
-            {
-                AutoBaseMonitorView view = new AutoBaseMonitorView();
-                view.Size = new Size(441, 299);
-                view.SetInformation(ipList[i]);
-                _viewMap.Add(ipList[i], view);
-                monitorViews[i] = view;
-            }
-            return monitorViews;
-        }
-
         //생성된 뷰를 업데이트 해주는 함수
-        public static void UpdatetoBaseMonitorView(NetworkStream stream)
+        public static void UpdatetoBaseMonitorView(AutoBaseMonitorView view, string ip, int count, bool runstop)
         {
             Task.Run(() =>
             {
-                foreach (var kvp in _viewMap)
-                {
-                    string ip = kvp.Key;
-                    AutoBaseMonitorView view = kvp.Value;
-                    bool status = false;
-                    int totalCnt = 0;
-                    try
-                    {
-                        string data = FunctionForThread("10.8.38.236");
-                        totalCnt = int.Parse(data);
-                        status = true;
-                    }
-                    catch
-                    {
-                        status = false;
-                    }
-                    //UI 스레드에서 업데이트
-                    view.Invoke(new Action(() =>
-                    {
-                        view.SetInformation(totalCnt, status);
-                    }));
-                }
-                Thread.Sleep(2000);
+                view.Invoke(new Action(() =>
+{
+    view.SetInformation(count, runstop);
+}));
             });
         }
 
-        //특정 IP에서 발생하는 데이터 변화량을 감지하는 함수
-        public static bool detectDataCahnge(string ip, AutoBaseMonitorView view)
-        {
-            TcpClient client = new TcpClient();
-            NetworkStream stream = null;
-            try
-            {
-                client.Connect(ip, getConfigData().Port);
-                stream = client.GetStream();
-            }
-            catch
-            {
-                throw new Exception("장비 연결 실패!");
-                return false;
-            }
-
-            string currentData = FunctionForThread(ip);
-            Thread.Sleep(2000);
-            string newData = FunctionForThread(ip);
-            if (currentData == newData)
-            {
-                return false;
-            }
-            //기존 값을 변경된 값으로 바꾸기
-            return true;
-        }
-        #region MyRegion
-
-        #endregion
         //값 변경이 감지된 경우 변경된 값을 업데이트 해주기
         public static void UpdateChangedValue(string ip, AutoBaseMonitorView view)
         {
@@ -232,8 +127,6 @@ namespace ModBusProtocol_PLC
             string data = FunctionForThread(ip);
             int totalCnt = int.Parse(data);
             //UI 스레드에서 업데이트
-           
-		}
-
-	}
+        }
+    }
 }

@@ -8,9 +8,11 @@ namespace ModBusProtocol_PLC
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-            ApplicationConfiguration.Initialize();
+			// To customize application configuration such as set high DPI settings or default font,
+			// see https://aka.ms/applicationconfiguration.
+			SQLitePCL.Batteries.Init();
+
+			ApplicationConfiguration.Initialize();
             Application.Run(new Form1());
         }
     }

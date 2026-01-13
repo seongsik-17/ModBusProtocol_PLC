@@ -10,6 +10,7 @@ namespace ModBusProtocol_PLC
 {
     public static class seongsiksUtils
     {
+        private static Config config = getConfigData();
         //바이트 합치기
         public static int combineBytesToInt(byte highByte, byte lowByte)
         {
@@ -35,11 +36,11 @@ namespace ModBusProtocol_PLC
 
             return config;
         }
-
-        //AICPL8 데이터 가져오기
-        public static string getDataFromAICPL8(string ip)
+		#region 
+		//AICPL8 데이터 가져오기
+		public static string getDataFromAICPL8(string ip)
         {
-            int port = getConfigData().Port;
+            int port = config.Port;
 
             try
             {
@@ -68,19 +69,21 @@ namespace ModBusProtocol_PLC
                 throw new Exception("장비 연결 실패!");
             }
         }
-
-        //쓰레드로 돌아갈 함수
-        public static string FunctionForThread(string ip)
+		#endregion
+		//쓰레드로 돌아갈 함수
+		//이 함수에서 굳이 string으로 return  할 필요가 있는 지 검토 필요
+		public static string FunctionForThread(string ip)
         {
             TcpClient client = new TcpClient();
             NetworkStream stream = null;
             try
             {
-                client.Connect(ip, getConfigData().Port);
+                client.Connect(ip, config.Port);
                 stream = client.GetStream();
             }
             catch
             {
+                //에러 로그 로직 작성 필요 
                 throw new Exception("장비 연결 실패!");
             }
             // Modbus 요청 패킷 생성 (예: 읽기 명령)
@@ -93,40 +96,15 @@ namespace ModBusProtocol_PLC
             int data = combineBytesToInt(response[9], response[10]);
             //textBox3.Text = data.ToString();
 
+            //data가 0으로 노이즈가 생기면 continue
             string returnData = data.ToString();
 
+            client.Close();
             return returnData;
         }
 
-        //생성된 뷰를 업데이트 해주는 함수
-        public static void UpdatetoBaseMonitorView(AutoBaseMonitorView view, string ip, int count, bool runstop)
-        {
-            Task.Run(() =>
-            {
-                view.Invoke(new Action(() =>
-{
-    view.SetInformation(count, runstop);
-}));
-            });
-        }
+       
 
-        //값 변경이 감지된 경우 변경된 값을 업데이트 해주기
-        public static void UpdateChangedValue(string ip, AutoBaseMonitorView view)
-        {
-            TcpClient client = new TcpClient();
-            NetworkStream stream = null;
-            try
-            {
-                client.Connect(ip, getConfigData().Port);
-                stream = client.GetStream();
-            }
-            catch
-            {
-                throw new Exception("장비 연결 실패!");
-            }
-            string data = FunctionForThread(ip);
-            int totalCnt = int.Parse(data);
-            //UI 스레드에서 업데이트
-        }
+        
     }
 }

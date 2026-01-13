@@ -23,6 +23,8 @@ namespace ModBusProtocol_PLC
             SetInformation();
 			label5.Text = totalCnt.ToString();
             label6.Text = status ? "연결됨" : "연결안됨";
+            string text1 = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " cnt:" + totalCnt + " stat:" + status + "\r\n";
+			textBox1.AppendText(text1); 
             if (status)
             {
                 label6.ForeColor = Color.Green;
@@ -35,6 +37,10 @@ namespace ModBusProtocol_PLC
         public void SetInformation()
         {
             label4.Text = ip;
+		}
+		public void SetInformation(string ip)
+		{
+			label4.Text = ip;
 		}
 	}
 }

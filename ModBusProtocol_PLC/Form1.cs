@@ -10,19 +10,19 @@ namespace ModBusProtocol_PLC
 
         public void frmInit()
         {
-            //for (int i = 0; i < config.Ip.Count; i++)
-            //{
-            //    TestAgent agent = new TestAgent(config.Ip[i], 13890);
-            //    agent.DataReceived += Agent_DataReceived;
-            //    agents.Add(agent);
-            //    agent.Start();
-            //}
-            TestAgent agent = new TestAgent("10.8.38.236", 13890);
-            ReceivedDataDto data = new ReceivedDataDto();
+            for (int i = 0; i < config.Ip.Count; i++)
+            {
+                TestAgent agent = new TestAgent(config.Ip[i], config.Port);
+                agent.DataReceived += Agent_DataReceived;
+                agents.Add(agent);
+                agent.Start();
+            }
+            //TestAgent agent = new TestAgent("10.8.38.236", 13890);
+            //ReceivedDataDto data = new ReceivedDataDto();
 
-            agent.DataReceived += Agent_DataReceived;
-            agents.Add(agent);
-            agent.Start();
+            //agent.DataReceived += Agent_DataReceived;
+            //agents.Add(agent);
+            //agent.Start();
         }
 
         private void Agent_DataReceived(object? sender, (string ip, int count, bool runstop) e)
@@ -59,6 +59,7 @@ namespace ModBusProtocol_PLC
                 view.Size = new Size(441, 299);
                 _viewMap.Add(ipList[i], view);
                 monitorViews[i] = view;
+                view.SetInformation(ipList[i]);
             }
             return monitorViews;
         }

@@ -45,10 +45,11 @@ namespace ModBusProtocol_PLC
         //데이터 업데이트
         public static void UpdateData(ReceivedDataDto data)
         {
+            //MessageBox.Show("UpdateData의 데이터: " + data.count + data.ip + data.runstop);
             using (var conn = new SqliteConnection(connectionString))
             {
                 conn.Open();
-                string query = $@"UPDATE  [{config.DbPath}] SET count = @Count, runstop = @RunStop, receivedTimeStamp = @ReceivedTimeStamp WHERE ip = @Ip";
+                string query = $@"UPDATE  [{config.DbPath}] SET count = @count, runstop = @runstop, receivedTimeStamp = @receivedTimeStamp WHERE ip = @ip";
                 try
                 {
                     conn.Execute(query, data);

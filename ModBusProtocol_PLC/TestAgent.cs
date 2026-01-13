@@ -22,8 +22,8 @@ namespace ModBusProtocol_PLC
         {
             Task.Run(DataProc);
         }
-
-        public void DataProc()
+		//DB에 가동 비가동 정보 어떤방식으로 넣을지 고민
+		public void DataProc()
         {
             int prevCount = 0;
             bool prevStatus = false;
@@ -39,6 +39,7 @@ namespace ModBusProtocol_PLC
             }
             catch (Exception ex)
             {
+                //
                 MessageBox.Show("DataProc()");
             }
 
@@ -70,10 +71,11 @@ namespace ModBusProtocol_PLC
                 }
                 catch (Exception ex)
                 {
-                    //로그 남기기
+                    //데이터 게더링 실패로그 남기기 + 5회 재시도
+                    MessageBox.Show(ex.Message);
                 }
 
-                Thread.Sleep(2000); // 2초 대기
+                //Thread.Sleep(2000); // 2초 대기
             }
         }
     }

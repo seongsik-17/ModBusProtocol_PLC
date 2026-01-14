@@ -6,6 +6,7 @@ namespace ModBusProtocol_PLC
 {
     public class Config
     {
+        public string ErrorDB {  get; set; }
         public string DbPath { get; set; }
         public List<string> Ip { get; set; }
 		public int Port { get; set; }

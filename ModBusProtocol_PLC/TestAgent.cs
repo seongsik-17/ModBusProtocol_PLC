@@ -22,8 +22,9 @@ namespace ModBusProtocol_PLC
         {
             Task.Run(DataProc);
         }
-		//DB에 가동 비가동 정보 어떤방식으로 넣을지 고민
-		public void DataProc()
+
+        //DB에 가동 비가동 정보 어떤방식으로 넣을지 고민
+        public void DataProc()
         {
             int prevCount = 0;
             bool prevStatus = false;
@@ -47,6 +48,7 @@ namespace ModBusProtocol_PLC
             {
                 try
                 {
+                    //ResultData를 통해 카운트와 가동/비가동 정보를 가져오는 것에 맞춰 구조를 변경해야한다.
                     string rawData = seongsiksUtils.FunctionForThread(ip);
 
                     if (int.TryParse(rawData, out int currentCount))

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ModBusProtocol_PLC
 {
@@ -12,6 +13,30 @@ namespace ModBusProtocol_PLC
 
         //config 파일 로드
         private static Config config = seongsiksUtils.getConfigData();
+        //오류가 발생하는 내용에 따라서 나만의 코드를 만들어보자
+        //오류 발생 로그
+        public static void WriteErrorLog(ErrorLogDto errorLog)
+        {
+			using (var conn = new SqliteConnection(connectionString))
+			{
+				try
+				{
+					conn.Open();
+					string query = $@"INSERT INTO [{config.ErrorDB}] (logTime, errorMsg, errorCode) VALUES(@logTime, @errorMsg, @errorCode)";
+					conn.Execute(query, errorLog);
+					//Todo: 데이터 정보 확인 후 클래스 생성 필요
+					//Boolean result = conn.Execute(,query);
+				}
+				catch (Exception ex)
+				{
+					throw new Exception("데이터 삽입 중 오류가 발생했습니다. " + ex.Message);
+				}
+				finally
+				{
+					conn.Close();
+				}
+			}
+		}
 
         //데이터 삽입
         public static void InsertData(ReceivedDataDto data)

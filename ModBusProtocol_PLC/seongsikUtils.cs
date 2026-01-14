@@ -71,36 +71,47 @@ namespace ModBusProtocol_PLC
         }
 		#endregion
 		//쓰레드로 돌아갈 함수
-		//이 함수에서 굳이 string으로 return  할 필요가 있는 지 검토 필요
-		public static string FunctionForThread(string ip)
+		public static ResultDataDto FunctionForThread(string ip)
         {
-            TcpClient client = new TcpClient();
-            NetworkStream stream = null;
-            try
-            {
-                client.Connect(ip, config.Port);
-                stream = client.GetStream();
-            }
-            catch
-            {
-                //에러 로그 로직 작성 필요 
-                throw new Exception("장비 연결 실패!");
-            }
-            // Modbus 요청 패킷 생성 (예: 읽기 명령)
-            byte[] request = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x03, 0x00, 0x64, 0x00, 0x01 };
-            stream.Write(request, 0, request.Length);
-            // 응답 받기
-            byte[] response = new byte[256];
-            int bytesRead = stream.Read(response, 0, response.Length);
-            // 응답 처리 (예: 데이터 출력)
-            int data = combineBytesToInt(response[9], response[10]);
-            //textBox3.Text = data.ToString();
+            //TcpClient client = new TcpClient();
+            //NetworkStream stream = null;
+            //try
+            //{
+            //    client.Connect(ip, config.Port);
+            //    stream = client.GetStream();
+            //}
+            //catch
+            //{
+            //    //에러 로그 로직 작성 필요 
+            //    throw new Exception("장비 연결 실패!");
+            //}
+            //// Modbus 요청 패킷 생성 (예: 읽기 명령)
+            //byte[] request = AICPL8Driver.ReadMultipleRegisterReaderTCP(ip,config.Port,0,2);
+            //stream.Write(request, 0, request.Length);
+            //// 응답 받기
+            //byte[] response = new byte[256];
+            //int bytesRead = stream.Read(response, 0, response.Length);
+            
+            //// 응답 처리 (예: 데이터 출력)
+            //int data = combineBytesToInt(response[9], response[10]);
+            ////textBox3.Text = data.ToString();
 
             //data가 0으로 노이즈가 생기면 continue
-            string returnData = data.ToString();
+            //string returnData = data.ToString();
 
-            client.Close();
-            return returnData;
+            byte[] result = AICPL8Driver.ReadMultipleRegisterReaderTCP(ip,config.Port,0,2);
+
+            int cnt = combineBytesToInt(result[9],result[10]);
+            int runstop = combineBytesToInt(result[11],result[12]);
+
+            ResultDataDto data = new ResultDataDto();
+            data.Count = cnt;
+            if(runstop == 0)
+            { data.Runstop = false; }
+            else { data.Runstop = true; }
+
+
+                return data;
         }
 
        

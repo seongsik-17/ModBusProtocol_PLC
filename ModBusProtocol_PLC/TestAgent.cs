@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -9,6 +10,7 @@ namespace ModBusProtocol_PLC
     {
         public event EventHandler<(string ip, int count, bool runstop)> DataReceived;
 
+        private Config config = seongsiksUtils.getConfigData();
         private string ip;
         private int port;
 
@@ -17,17 +19,36 @@ namespace ModBusProtocol_PLC
             this.ip = ip;
             this.port = port;
         }
+        //네트워크 확인용
+        public bool TestConnection()
+        {
+            bool result = false;
+            TcpClient client = new TcpClient();
+            try
+            {
+                var test = client.BeginConnect(ip, port, null, null);
+                result = test.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(2));
+            }
+            catch
+            {
+                return false;
+            }
+            finally { client.Close(); }
+            return result;
+        }
 
         public void Start()
         {
             Task.Run(DataProc);
         }
 
-        //DB에 가동 비가동 정보 어떤방식으로 넣을지 고민
         public void DataProc()
         {
+            int loopCount = 0;
             int prevCount = 0;
             bool prevStatus = false;
+            int errorCnt = 0;
+            ResultDataDto resultData = new ResultDataDto();
 
             try
             {
@@ -48,36 +69,51 @@ namespace ModBusProtocol_PLC
             {
                 try
                 {
-                    //ResultData를 통해 카운트와 가동/비가동 정보를 가져오는 것에 맞춰 구조를 변경해야한다.
-                    string rawData = seongsiksUtils.FunctionForThread(ip);
+                    resultData = seongsiksUtils.FunctionForThread(ip);
+                    int currentCount = resultData.Count;
+                    bool currentStatus = resultData.Runstop;
 
-                    if (int.TryParse(rawData, out int currentCount))
+                    if (loopCount == 0 && TestConnection())
                     {
-                        bool currentStatus = true;
+						DataReceived?.Invoke(this, (this.ip, currentCount, currentStatus));
+                        loopCount++;
+					}
 
-                        if (prevCount != currentCount || prevStatus != currentStatus)
+                    if (prevCount != currentCount || prevStatus != currentStatus)
+                    {
+                        DataReceived?.Invoke(this, (this.ip, currentCount, currentStatus));
+                        ReceivedDataDto newData = new ReceivedDataDto()
                         {
-                            DataReceived?.Invoke(this, (this.ip, currentCount, currentStatus));
-                            ReceivedDataDto newData = new ReceivedDataDto()
-                            {
-                                ip = this.ip,
-                                count = currentCount,
-                                runstop = currentStatus,
-                                receivedTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-                            };
-                            DbController.InsertData(newData);
-                            prevCount = currentCount;
-                            prevStatus = currentStatus;
-                        }
+                            ip = this.ip,
+                            count = currentCount,
+                            runstop = currentStatus,
+                            receivedTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                        };
+                        DbController.InsertData(newData);
+                        prevCount = currentCount;
+                        prevStatus = currentStatus;
                     }
+                    errorCnt = 0;
                 }
                 catch (Exception ex)
                 {
                     //데이터 게더링 실패로그 남기기 + 5회 재시도
-                    MessageBox.Show(ex.Message);
+                    if (errorCnt > 5)
+                    {
+                        ErrorLogDto error = new ErrorLogDto();
+                        error.IpAdrr = ip;
+                        error.ErrorMsg = "데이터 게더링 실패! " + ex.Message;
+                        error.LogTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                        DbController.WriteErrorLog(error);
+
+                        throw new Exception();
+                    }
+
+                    errorCnt++;
+                    continue;
                 }
 
-                //Thread.Sleep(2000); // 2초 대기
+                Thread.Sleep(config.SetInterval * 1000); // confing.SetInterval * 1000
             }
         }
     }

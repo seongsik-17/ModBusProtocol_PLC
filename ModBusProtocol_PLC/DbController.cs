@@ -22,7 +22,7 @@ namespace ModBusProtocol_PLC
 				try
 				{
 					conn.Open();
-					string query = $@"INSERT INTO [{config.ErrorDB}] (logTime, errorMsg, errorCode) VALUES(@logTime, @errorMsg, @errorCode)";
+					string query = $@"INSERT INTO [{config.ErrorDB}] (logTime, errorMsg, errorCode) VALUES(@LogTime, @ErrorMsg, @ErrorCode)";
 					conn.Execute(query, errorLog);
 					//Todo: 데이터 정보 확인 후 클래스 생성 필요
 					//Boolean result = conn.Execute(,query);

@@ -62,6 +62,7 @@ namespace ModBusProtocol_PLC
                 if (errorCnt > 5)
                 {
                     ErrorLogDto errorLog = new ErrorLogDto();
+                    errorLog.IpAdrr = ip;
                     errorLog.ErrorMsg = "ModBus통신 실패!";
                     errorLog.LogTime = DateTime.Now.ToString("yyyy년-MM월-dd일 HH:mm:ss");
 					DbController.WriteErrorLog(errorLog);
@@ -79,6 +80,7 @@ namespace ModBusProtocol_PLC
             catch (Exception ex)
             {
                 ErrorLogDto log = new ErrorLogDto();
+                log.IpAdrr = ip;
                 log.ErrorMsg = ex.Message;
                 log.LogTime = DateTime.Now.ToString("yyyy년-MM월-dd일 HH:mm:ss");
                 DbController.WriteErrorLog(log);

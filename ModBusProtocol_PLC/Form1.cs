@@ -97,8 +97,8 @@ namespace ModBusProtocol_PLC
             try
             {
                 //textBox3.AppendText(seongsiksUtils.getDataFromAICPL8(comboBox1.Text) + "\r\n");
-                string msg = seongsiksUtils.FunctionForThread("10.8.38.236");
-                MessageBox.Show(msg);
+                //string msg = seongsiksUtils.FunctionForThread();
+                //MessageBox.Show(msg);
             }
             catch (Exception ex)
             {

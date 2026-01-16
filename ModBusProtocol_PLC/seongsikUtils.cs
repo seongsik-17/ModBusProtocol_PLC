@@ -69,7 +69,7 @@ namespace ModBusProtocol_PLC
                 throw new Exception("장비 연결 실패!");
             }
         }
-		#endregion
+		#endregion 
 		//쓰레드로 돌아갈 함수
 		public static ResultDataDto FunctionForThread(string ip)
         {
@@ -99,7 +99,7 @@ namespace ModBusProtocol_PLC
             //data가 0으로 노이즈가 생기면 continue
             //string returnData = data.ToString();
 
-            byte[] result = AICPL8Driver.ReadMultipleRegisterReaderTCP(ip,config.Port,0,2);
+            byte[] result = AICPL8Driver.ReadMultipleRegisterReaderTCP(ip,config.Port,100,2);
 
             int cnt = combineBytesToInt(result[9],result[10]);
             int runstop = combineBytesToInt(result[11],result[12]);

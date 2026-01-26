@@ -19,26 +19,13 @@ namespace ModBusProtocol_PLC
             this.ip = ip;
             this.port = port;
         }
-        //네트워크 확인용
-        public bool TestConnection()
-        {
-            bool result = false;
-            TcpClient client = new TcpClient();
-            try
-            {
-                var test = client.BeginConnect(ip, port, null, null);
-                result = test.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(2));
-            }
-            catch
-            {
-                return false;
-            }
-            finally { client.Close(); }
-            return result;
-        }
 
         public void Start()
         {
+            if(!seongsiksUtils.ConnectionTimer(ip, config.Port))
+				{
+					throw new Exception();
+				}
             Task.Run(DataProc);
         }
 
@@ -73,11 +60,11 @@ namespace ModBusProtocol_PLC
                     int currentCount = resultData.Count;
                     bool currentStatus = resultData.Runstop;
 
-                    if (loopCount == 0 && TestConnection())
-                    {
-						DataReceived?.Invoke(this, (this.ip, currentCount, currentStatus));
-                        loopCount++;
-					}
+                    //if (loopCount == 0 && TestConnection())
+                    //{
+                    //    DataReceived?.Invoke(this, (this.ip, currentCount, currentStatus));
+                    //    loopCount++;
+                    //}
 
                     if (prevCount != currentCount || prevStatus != currentStatus)
                     {

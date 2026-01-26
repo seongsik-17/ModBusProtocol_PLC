@@ -10,12 +10,31 @@ namespace ModBusProtocol_PLC
 
         public void frmInit()
         {
+
             for (int i = 0; i < config.Ip.Count; i++)
             {
                 TestAgent agent = new TestAgent(config.Ip[i], config.Port);
                 agent.DataReceived += Agent_DataReceived;
                 agents.Add(agent);
-                agent.Start();
+                try
+                {
+				    agent.Start();
+				}
+                catch
+                {
+                    MessageBox.Show($"{config.Ip[i]} 연결 실패");
+					//에러 로그 남기는 로직
+					ErrorLogDto errorLog = new ErrorLogDto
+                    {
+                        IpAdrr = config.Ip[i],
+                        LogTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    };
+
+                    DbController.WriteErrorLog(errorLog);
+                    
+
+				}
+                
             }
             //TestAgent agent = new TestAgent("10.8.38.236", 13890);
             //ReceivedDataDto data = new ReceivedDataDto();

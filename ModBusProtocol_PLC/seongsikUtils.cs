@@ -73,31 +73,6 @@ namespace ModBusProtocol_PLC
 		//쓰레드로 돌아갈 함수
 		public static ResultDataDto FunctionForThread(string ip)
         {
-            //TcpClient client = new TcpClient();
-            //NetworkStream stream = null;
-            //try
-            //{
-            //    client.Connect(ip, config.Port);
-            //    stream = client.GetStream();
-            //}
-            //catch
-            //{
-            //    //에러 로그 로직 작성 필요 
-            //    throw new Exception("장비 연결 실패!");
-            //}
-            //// Modbus 요청 패킷 생성 (예: 읽기 명령)
-            //byte[] request = AICPL8Driver.ReadMultipleRegisterReaderTCP(ip,config.Port,0,2);
-            //stream.Write(request, 0, request.Length);
-            //// 응답 받기
-            //byte[] response = new byte[256];
-            //int bytesRead = stream.Read(response, 0, response.Length);
-            
-            //// 응답 처리 (예: 데이터 출력)
-            //int data = combineBytesToInt(response[9], response[10]);
-            ////textBox3.Text = data.ToString();
-
-            //data가 0으로 노이즈가 생기면 continue
-            //string returnData = data.ToString();
 
             byte[] result = AICPL8Driver.ReadMultipleRegisterReaderTCP(ip,config.Port,100,2);
 
@@ -109,13 +84,34 @@ namespace ModBusProtocol_PLC
             if(runstop == 0)
             { data.Runstop = false; }
             else { data.Runstop = true; }
+            //카운터가 초기화 되면 기존 카운터 값을 가져와서 더해야함
 
 
                 return data;
         }
 
-       
+		//tcp/ip 장비 연결 타이머
+        public static bool ConnectionTimer(string ip, int port)
+        {
+            TcpClient client = new TcpClient();
+			//Connect(동기) BeginConnect(비동기) 
+			var result = client.BeginConnect(ip,port,null,null);//string host, int port, AsyncCallback requestCallback, object state
 
-        
-    }
+            bool success = result.AsyncWaitHandle.WaitOne(2000);
+
+           if(!success)
+            {
+				// 연결 실패
+				return false;
+            }
+            client.EndConnect(result);
+            client.Close();
+            return true;
+
+		}
+
+
+
+
+	}
 }

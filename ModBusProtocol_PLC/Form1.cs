@@ -22,7 +22,7 @@ namespace ModBusProtocol_PLC
 				}
                 catch
                 {
-                    MessageBox.Show($"{config.Ip[i]} 연결 실패");
+                    //MessageBox.Show($"{config.Ip[i]} 연결 실패");
 					//에러 로그 남기는 로직
 					ErrorLogDto errorLog = new ErrorLogDto
                     {
@@ -31,7 +31,15 @@ namespace ModBusProtocol_PLC
                     };
 
                     DbController.WriteErrorLog(errorLog);
-                    
+                    //연결 실패 상태 갱신
+                    this.Invoke(new Action(() =>
+                    {
+                        if (_viewMap.ContainsKey(config.Ip[i]))
+                        {
+                            _viewMap[config.Ip[i]].SetInformation(0, false);
+                        }
+                    }));
+
 
 				}
                 

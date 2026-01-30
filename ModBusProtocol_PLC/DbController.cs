@@ -13,7 +13,8 @@ namespace ModBusProtocol_PLC
 
         //config 파일 로드
         private static Config config = seongsiksUtils.getConfigData();
-        //오류가 발생하는 내용에 따라서 나만의 코드를 만들어보자
+        //오류가 발생하는 내용에 따라서 코드를 만들어 볼 예정
+
         //오류 발생 로그
         public static void WriteErrorLog(ErrorLogDto errorLog)
         {

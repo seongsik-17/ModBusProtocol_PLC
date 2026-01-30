@@ -11,6 +11,7 @@ namespace ModBusProtocol_PLC
     public static class seongsiksUtils
     {
         private static Config config = getConfigData();
+
         //바이트 합치기
         public static int combineBytesToInt(byte highByte, byte lowByte)
         {
@@ -36,9 +37,11 @@ namespace ModBusProtocol_PLC
 
             return config;
         }
-		#region 
-		//AICPL8 데이터 가져오기
-		public static string getDataFromAICPL8(string ip)
+
+        #region
+
+        //AICPL8 데이터 가져오기
+        public static string getDataFromAICPL8(string ip)
         {
             int port = config.Port;
 
@@ -69,49 +72,43 @@ namespace ModBusProtocol_PLC
                 throw new Exception("장비 연결 실패!");
             }
         }
-		#endregion 
-		//쓰레드로 돌아갈 함수
-		public static ResultDataDto FunctionForThread(string ip)
+
+        #endregion
+
+        //데이터를 가져오는 용도로만 사용하자!
+        public static ResultDataDto FunctionForThread(string ip)
         {
+            byte[] result = AICPL8Driver.ReadMultipleRegisterReaderTCP(ip, config.Port, 100, 2);
 
-            byte[] result = AICPL8Driver.ReadMultipleRegisterReaderTCP(ip,config.Port,100,2);
-
-            int cnt = combineBytesToInt(result[9],result[10]);
-            int runstop = combineBytesToInt(result[11],result[12]);
+            int cnt = combineBytesToInt(result[9], result[10]);
+            int runstop = combineBytesToInt(result[11], result[12]);
 
             ResultDataDto data = new ResultDataDto();
             data.Count = cnt;
-            if(runstop == 0)
+            if (runstop == 0)
             { data.Runstop = false; }
             else { data.Runstop = true; }
-            //카운터가 초기화 되면 기존 카운터 값을 가져와서 더해야함
 
-
-                return data;
+            return data;
         }
 
-		//tcp/ip 장비 연결 타이머
+        //tcp/ip 장비 연결 타이머
         public static bool ConnectionTimer(string ip, int port)
         {
             TcpClient client = new TcpClient();
-			//Connect(동기) BeginConnect(비동기) 
-			var result = client.BeginConnect(ip,port,null,null);//string host, int port, AsyncCallback requestCallback, object state
+            //Connect(동기) BeginConnect(비동기)
+            var result = client.BeginConnect(ip, port, null, null);//string host, int port, AsyncCallback requestCallback, object state
 
             bool success = result.AsyncWaitHandle.WaitOne(2000);
 
-           if(!success)
+            if (!success)
             {
-				// 연결 실패
-				return false;
+                // 연결 실패
+                return false;
             }
             client.EndConnect(result);
             client.Close();
             return true;
-
-		}
-
-
-
-
-	}
+        }
+    }
 }

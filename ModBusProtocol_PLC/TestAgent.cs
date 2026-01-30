@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -22,10 +23,10 @@ namespace ModBusProtocol_PLC
 
         public void Start()
         {
-            if(!seongsiksUtils.ConnectionTimer(ip, config.Port))
-				{
-					throw new Exception();
-				}
+            if (!seongsiksUtils.ConnectionTimer(ip, config.Port))
+            {
+                throw new Exception();
+            }
             Task.Run(DataProc);
         }
 
@@ -45,6 +46,11 @@ namespace ModBusProtocol_PLC
                     prevCount = lastData.count;
                     prevStatus = lastData.runstop;
                 }
+                else
+                {
+                    prevCount = 0;
+                    prevStatus = false;
+                }
             }
             catch (Exception ex)
             {
@@ -59,15 +65,18 @@ namespace ModBusProtocol_PLC
                     resultData = seongsiksUtils.FunctionForThread(ip);
                     int currentCount = resultData.Count;
                     bool currentStatus = resultData.Runstop;
+					//데이터 변환을 감지한 순간 모종의 사유로 카운터가 초기화 될 경우 DB에서 값을 가져옴
+					if (prevCount != 0 && currentCount == 0)
+					{
+						prevCount = DbController.SelectOne(ip).count;
 
-                    //if (loopCount == 0 && TestConnection())
-                    //{
-                    //    DataReceived?.Invoke(this, (this.ip, currentCount, currentStatus));
-                    //    loopCount++;
-                    //}
+                        continue;
+					}
 
-                    if (prevCount != currentCount || prevStatus != currentStatus)
-                    {
+					if (prevCount != currentCount || prevStatus != currentStatus)
+                    {  
+                        
+                        
                         DataReceived?.Invoke(this, (this.ip, currentCount, currentStatus));
                         ReceivedDataDto newData = new ReceivedDataDto()
                         {
